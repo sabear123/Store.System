@@ -21,6 +21,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var ordersDB = new List<OrderResponse>();
+
 app.MapPost("/api/orders", async (CreateOrderDto order, IHttpClientFactory factory) =>
 {
     var invClient = factory.CreateClient("InventoryClient");
@@ -61,16 +63,18 @@ app.MapPost("/api/orders", async (CreateOrderDto order, IHttpClientFactory facto
         // 4. Calcular Total
         decimal total = price.BasePrice * order.Quantity;
 
+        var newOrder = new OrderResponse(
+            OrderId: Guid.NewGuid(),
+            Product: stock.Sku,
+            Quantity: order.Quantity,
+            UnitPrice: price.BasePrice,
+            TotalToPay: total
+            );
+
+        ordersDB.Add(newOrder);
+
         // 5. Retornar Factura
-        return Results.Ok(new
-        {
-            OrderId = Guid.NewGuid(),
-            Product = stock.Sku,
-            Quantity = order.Quantity,
-            UnitPrice = price.BasePrice,
-            TotalToPay = total,
-            Status = "Created"
-        });
+        return Results.Ok(newOrder);
     }
     catch (HttpRequestException ex)
     {
@@ -82,9 +86,15 @@ app.MapPost("/api/orders", async (CreateOrderDto order, IHttpClientFactory facto
     }
 });
 
+app.MapGet("/api/orders", () =>
+{
+    return Results.Ok(ordersDB);
+});
+
 app.Run();
 
 // DTOs Auxiliares (Cópienlos de los otros proyectos)
 
 record InventoryResponse(int ProductId, int Stock, string Sku);
 record PriceResponse(int ProductId, decimal BasePrice, string Currency);
+record OrderResponse(Guid OrderId, string Product, int Quantity, decimal UnitPrice, decimal TotalToPay);
