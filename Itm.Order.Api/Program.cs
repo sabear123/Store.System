@@ -20,7 +20,7 @@ builder.Services
     .AddHttpClient("PriceClient", client =>
     {
         // TODO: Ajustar al puerto real de Price.Api cuando exista el proyecto
-        client.BaseAddress = new Uri("http://localhost:5280");
+        client.BaseAddress = new Uri("http://localhost:5069");
         client.Timeout = TimeSpan.FromSeconds(5);
     })
     .AddStandardResilienceHandler();
