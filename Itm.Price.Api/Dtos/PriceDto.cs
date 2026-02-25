@@ -1,3 +1,3 @@
 ﻿namespace Itm.Price.Api.Dtos;
 
-public record PriceDto(int ProductID, decimal BasePrice, string Currency);
+public record PriceDto(int ProductId, decimal BasePrice, string Currency);

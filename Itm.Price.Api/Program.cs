@@ -22,7 +22,7 @@ var priceDb = new List<PriceDto>
 
 app.MapGet("/api/prices/{id}", (int id) =>
 {
-    var item = priceDb.FirstOrDefault(p => p.ProductID == id);
+    var item = priceDb.FirstOrDefault(p => p.ProductId == id);
     return item is not null ? Results.Ok(item) : Results.NotFound(new { Error = $"Precio para el producto {id} no encontrado." });
 });
 

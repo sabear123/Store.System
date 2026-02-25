@@ -34,7 +34,7 @@ var inventoryDB = new List<InventoryDto>
 app.MapGet("/api/inventory/{id}", (int id) =>
 {
     // Lógica LINQ para buscar el producto por su ID en la lista de inventario
-    var item = inventoryDB.FirstOrDefault(p => p.ProductID == id);
+    var item = inventoryDB.FirstOrDefault(p => p.ProductId == id);
     // Patrón de respuesta HTTP
     // Si existe el producto, se devuelve con un código de estado 200 OK
     // Si no existe, se devuelve un código de estado 404 Not Found
@@ -50,7 +50,7 @@ app.MapGet("/api/inventory/{id}", (int id) =>
 app.MapPost("/api/inventory/reduce", (ReduceStockDto request) =>
 {
     // Lógica LINQ para buscar el producto por su ID en la lista de inventario
-    var item = inventoryDB.FirstOrDefault(p => p.ProductID == request.ProductId);
+    var item = inventoryDB.FirstOrDefault(p => p.ProductId == request.ProductId);
     // Validación de la existencia del producto - Reglas de Negocio
     // Si no existe el producto, se devuelve un código de estado 404 Not Found
     if (item is null)
