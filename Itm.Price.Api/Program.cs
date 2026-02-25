@@ -13,17 +13,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-var priceDb = new List<PriceDto>
+// Simulación de base de datos de precios
+var pricesDB = new List<PriceDto>
 {
-    new(1, 1499.99m, "USD"),
-    new(2, 799.50m, "USD"),
-    new(3, 2299.00m, "USD")
+    new (1, 1200.50m, "USD"),
+    new (2, 950000.00m, "COP"),
+    new (3, 450.00m, "USD")
 };
 
-app.MapGet("/api/prices/{id}", (int id) =>
+// Endpoint GET: /api/price/{id}
+app.MapGet("/api/price/{id}", (int id) =>
 {
-    var item = priceDb.FirstOrDefault(p => p.ProductId == id);
-    return item is not null ? Results.Ok(item) : Results.NotFound(new { Error = $"Precio para el producto {id} no encontrado." });
+    var price = pricesDB.FirstOrDefault(p => p.ProductId == id);
+    return price is not null ? Results.Ok(price) : Results.NotFound();
 });
 
 app.Run();
