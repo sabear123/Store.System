@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc; // Importamos el espacio de nombres para usar atributos como [ApiController] y [Route]
+using System.Net.Http.Json;
+using Microsoft.Extensions.Http.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
 
