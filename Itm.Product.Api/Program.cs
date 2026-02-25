@@ -74,7 +74,6 @@ app.MapGet("/api/products/{id}/summary", async (int id, IHttpClientFactory facto
 
     var price = priceTask.Result;
 
-
     return Results.Ok(
         new ProductSummaryDto(
             ProductId: id,

@@ -29,3 +29,5 @@ app.MapGet("/api/price/{id}", (int id) =>
 });
 
 app.Run();
+
+record PriceDto(int ProductId, decimal BasePrice, string Currency);
