@@ -31,17 +31,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var productsDB = new List<ProductDto>
+{
+    new (1, "Super Laptop"),
+    new (2, "Gaming Mouse"),
+    new (3, "Office Keyboard")
+};
+
 // 3️⃣ Zona de Endpoints
 app.MapGet("/api/products/{id}/summary", async (int id, IHttpClientFactory factory, HttpContext httpContext) =>
 {
-    var productName = "Super Laptop";
-    var ct = httpContext.RequestAborted;
+    // 🔹 Buscar producto por ID en "base de datos"
+    var product = productsDB.FirstOrDefault(p => p.ProductId == id);
+    if (product is null)
+        return Results.NotFound(new { Error = $"Producto con ID={id} no existe." });
 
     var inventoryClient = factory.CreateClient("InventoryClient");
     var priceClient = factory.CreateClient("PriceClient");
 
-    var inventoryTask = inventoryClient.GetFromJsonAsync<InventoryResponse>($"/api/inventory/{id}", cancellationToken: ct);
-    var priceTask = priceClient.GetFromJsonAsync<PriceDto>($"/api/price/{id}", cancellationToken: ct);
+    var inventoryTask = inventoryClient.GetFromJsonAsync<InventoryResponse>($"/api/inventory/{id}");
+    var priceTask = priceClient.GetFromJsonAsync<PriceDto>($"/api/price/{id}");
 
     try
     {
@@ -65,8 +74,15 @@ app.MapGet("/api/products/{id}/summary", async (int id, IHttpClientFactory facto
 
     var price = priceTask.Result;
 
-    var summary = new ProductSummaryDto(id, productName, inv.Stock, price.BasePrice, price.Currency);
-    return Results.Ok(summary);
+
+    return Results.Ok(
+        new ProductSummaryDto(
+            ProductId: id,
+            Name: product.Name,       // <- viene del DTO
+            Stock: inv.Stock,
+            Price: price.BasePrice,
+            Currency: price.Currency
+        ));
 });
 
 app.Run();
@@ -74,4 +90,5 @@ app.Run();
 // 4️⃣ Zona de DTOs (al final del archivo fuera de cualquier bloque)
 record InventoryResponse(int ProductId, int Stock, string Sku);
 record PriceDto(int ProductId, decimal BasePrice, string Currency);
+record ProductDto(int ProductId, string Name);
 record ProductSummaryDto(int ProductId, string Name, int Stock, decimal Price, string Currency);
