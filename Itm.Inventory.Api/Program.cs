@@ -35,6 +35,7 @@ var inventoryDB = new List<InventoryDto>
 // reduce el stock y devuelve una respuesta 200 OK con un mensaje indicando que el stock ha sido reducido.
 // Usamos un [FromBody] implícito al recibir el DTO como parámetro, lo que indica que los datos se deben
 // enviar en el cuerpo de la solicitud.
+
 app.MapPost("/api/inventory/reduce", (ReduceStockDto request) =>
 {
     // Lógica LINQ para buscar el producto por su ID en la lista de inventario
