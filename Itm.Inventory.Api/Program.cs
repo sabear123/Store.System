@@ -5,13 +5,13 @@ var builder = WebApplication.CreateBuilder(args);
 //  -- 1. Zona de Servicios
 // Aquí se registran los servicios que la aplicación va a usar, como controladores,bases de datos, etc.
 
-builder .Services.AddEndpointsApiExplorer(); // Permite explorar los endpoints de la API
-builder .Services.AddSwaggerGen(); // Agrega soporte para Swagger, que genera documentación interactiva de la API
+builder.Services.AddEndpointsApiExplorer(); // Permite explorar los endpoints de la API
+builder.Services.AddSwaggerGen(); // Agrega soporte para Swagger, que genera documentación interactiva de la API
 
 var app = builder.Build(); // Construye la aplicación con los servicios registrados
 
 // -- 2. Zona de Middleware (El Portero)
-if(app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger(); // Habilita Swagger en modo desarrollo
     app.UseSwaggerUI(); // Habilita la interfaz de usuario de Swagger
@@ -28,18 +28,6 @@ var inventoryDB = new List<InventoryDto>
 };
 
 // -- 4. Zona de Endpoints (Las Rutas)
-// MapGet: Define un endpoint GET para obtener el inventario completo. Si el inventario está vacío, devuelve un error 404.
-// "api/inventory7{productId}": Define un endpoint GET para obtener el inventario de un producto específico por su ID. Si el producto no se encuentra, devuelve un error 404.
-// GET
-app.MapGet("/api/inventory/{id}", (int id) =>
-{
-    // Lógica LINQ para buscar el producto por su ID en la lista de inventario
-    var item = inventoryDB.FirstOrDefault(p => p.ProductId == id);
-    // Patrón de respuesta HTTP
-    // Si existe el producto, se devuelve con un código de estado 200 OK
-    // Si no existe, se devuelve un código de estado 404 Not Found
-    return item is not null ? Results.Ok(item) : Results.NotFound();
-});
 
 // POST
 // Nuevo Endpoint para reducir el stock de un producto específico. Recibe un DTO con el ID del producto y
@@ -72,6 +60,50 @@ app.MapPost("/api/inventory/reduce", (ReduceStockDto request) =>
     inventoryDB[index] = item with { Stock = item.Stock - request.Quantity };
     // Confirmación de la reducción del stock con un mensaje que incluye la cantidad reducida y el stock actual
     return Results.Ok(new { Message = "Stock actualizado ", NewStock = inventoryDB[index].Stock });
+});
+
+// Endpoint de compensación: POST /api/inventory/release
+// POST
+// Endpoint de compensación: Aumenta el stock de un producto (por ejemplo, si una orden fue cancelada)
+// Recibe un DTO con el ID del producto y la cantidad a liberar. Si el producto no existe, devuelve 404.
+// Si el producto existe, se incrementa el stock y se devuelve 200 OK con el nuevo stock.
+app.MapPost("/api/inventory/release", (ReduceStockDto request) =>
+{
+    Console.WriteLine($"[COMPENSACIÓN] Recibida solicitud para liberar stock del producto ID {request.ProductId} en {request.Quantity} unidades...");
+    // Buscar el producto en la lista de inventario
+    var item = inventoryDB.FirstOrDefault(p => p.ProductId == request.ProductId);
+
+    // Validar que el producto exista
+    if (item is null)
+    {
+        return Results.NotFound(new { Error = $"Producto con ID {request.ProductId} no encontrado." });
+    }
+
+    // Aumentar el stock del producto
+    var index = inventoryDB.IndexOf(item);
+    inventoryDB[index] = item with { Stock = item.Stock + request.Quantity };
+
+    Console.WriteLine($"[COMPENSACIÓN] Se devolvieron {request.Quantity} unidades del producto {item.SKU}. NUEVO STOCK: {inventoryDB[index].Stock}.");
+
+    // Retornar respuesta exitosa con el nuevo valor del stock
+    return Results.Ok(new
+    {
+        Message = $"Stock liberado correctamente. Se aumentó en {request.Quantity} unidades.",
+        NewStock = inventoryDB[index].Stock
+    });
+});
+
+// MapGet: Define un endpoint GET para obtener el inventario completo. Si el inventario está vacío, devuelve un error 404.
+// "api/inventory7{productId}": Define un endpoint GET para obtener el inventario de un producto específico por su ID. Si el producto no se encuentra, devuelve un error 404.
+// GET
+app.MapGet("/api/inventory/{id}", (int id) =>
+{
+    // Lógica LINQ para buscar el producto por su ID en la lista de inventario
+    var item = inventoryDB.FirstOrDefault(p => p.ProductId == id);
+    // Patrón de respuesta HTTP
+    // Si existe el producto, se devuelve con un código de estado 200 OK
+    // Si no existe, se devuelve un código de estado 404 Not Found
+    return item is not null ? Results.Ok(item) : Results.NotFound();
 });
 
 app.Run(); // Inicia la aplicación y comienza a escuchar las solicitudes entrantes
