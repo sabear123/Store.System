@@ -73,12 +73,6 @@ app.MapPost("/api/orders", async (CreateOrderDto order, IHttpClientFactory facto
                 return Results.Problem("No se pudo deserializar la respuesta de precios");
             }
 
-            // 3. Validar Stock
-            if (stock.Stock < order.Quantity)
-            {
-                return Results.BadRequest("No hay suficiente mercancía.");
-            }
-
             // 4. Calcular Total
             decimal total = price.BasePrice * order.Quantity;
 
